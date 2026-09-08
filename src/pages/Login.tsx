@@ -109,7 +109,7 @@ const Login = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="/lovable-uploads/84af3e7f-9171-4c73-900f-9499a9673234.png" 
+              src="./lovable-uploads/84af3e7f-9171-4c73-900f-9499a9673234.png" 
               alt="NEOLED Logo" 
               className="h-12 w-auto"
             />

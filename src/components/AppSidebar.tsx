@@ -382,13 +382,13 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
         >
           {collapsed ? (
             <img
-              src="/lovable-uploads/image.png"
+              src="./lovable-uploads/image.png"
               alt="NEOLED Logo"
               className="h-12 w-12 object-contain transition-all"
             />
           ) : (
             <img
-              src="/lovable-uploads/84af3e7f-9171-4c73-900f-9499a9673234.png"
+              src="./lovable-uploads/84af3e7f-9171-4c73-900f-9499a9673234.png"
               alt="NEOLED Logo"
               className="h-auto w-auto transition-all"
             />

@@ -95,8 +95,8 @@
     "wait-on": "^9.1.0"
   },
   "build": {
-    "appId": "com.electronapp.desktop",
-    "productName": "Mi Aplicación",
+    "appId": "com.farmmedicus.app",
+    "productName": "FarmMedicus",
     "directories": {
       "output": "release"
     },
@@ -104,6 +104,24 @@
       "dist/**/*",
       "electron/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "FarmMedicus-Back",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!node_modules"
+        ]
+      },
+      {
+        "from": "FarmMedicus-Back/node_modules",
+        "to": "backend/node_modules",
+        "filter": [
+          "**/*",
+          "!**/.cache/**"
+        ]
+      }
     ],
     "win": {
       "target": "nsis"
