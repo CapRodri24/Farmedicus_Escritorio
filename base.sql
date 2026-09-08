@@ -1,0 +1,221 @@
+CREATE TABLE ubicaciones (
+    idubicacion SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1))
+);
+
+CREATE TABLE categorias (
+    idcategoria SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1))
+);
+
+CREATE TABLE tipos (
+    idtipo SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1))
+);
+
+-- Usuarios con rol directo
+CREATE TABLE usuarios (
+    idusuario SERIAL PRIMARY KEY,
+    nombres VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20),
+    usuario VARCHAR(50) UNIQUE NOT NULL,
+    contraseña VARCHAR(255) NOT NULL,
+    rol VARCHAR(20) CHECK (rol IN ('Admin', 'Asistente')),
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1, 2))
+);
+
+-- Tabla Doctor
+CREATE TABLE doctores (
+    iddoctor SERIAL PRIMARY KEY,
+    nombre_doctor VARCHAR(200) NOT NULL,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1)) -- 0 activo, 1 eliminado
+);
+
+-- Tabla Laboratorio
+CREATE TABLE laboratorios (
+    idlaboratorio SERIAL PRIMARY KEY,
+    nombre_laboratorio VARCHAR(200) NOT NULL,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1)) -- 0 activo, 1 eliminado
+);
+CREATE TABLE forma_farmaceutica (
+    idforma_farmaceutica SERIAL PRIMARY KEY,
+    nombre_forma VARCHAR(200) NOT NULL,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1)) -- 0 activo, 1 eliminado
+);
+
+-- Tabla de productos (sin stock)
+CREATE TABLE productos (
+    idproducto SERIAL PRIMARY KEY,
+    nombre VARCHAR(200) NOT NULL,
+    codigop VARCHAR(50) UNIQUE,
+    descripcion TEXT,
+    idubicacion INTEGER REFERENCES ubicaciones(idubicacion),
+    idlaboratorio INTEGER REFERENCES laboratorios(idlaboratorio),
+    idforma_farmaceutica INTEGER REFERENCES forma_farmaceutica(idforma_farmaceutica),
+    estado SMALLINT DEFAULT 0,
+    imagen bytea,
+    precio_venta DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    precio_compra DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    stock_minimo INTEGER NOT NULL DEFAULT 0,
+    codigo_barras VARCHAR(100) UNIQUE
+);
+
+-- Tabla Lote
+CREATE TABLE lotes (
+    idlote SERIAL PRIMARY KEY,
+    idproducto INTEGER REFERENCES productos(idproducto) NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    fecha_vencimiento DATE,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1)) -- 0 activo, 1 eliminado
+);
+
+-- Relación muchos a muchos: Productos - Categorías
+CREATE TABLE producto_categorias (
+    idproducto INTEGER REFERENCES productos(idproducto) ON DELETE CASCADE,
+    idcategoria INTEGER REFERENCES categorias(idcategoria) ON DELETE CASCADE,
+    PRIMARY KEY (idproducto, idcategoria)
+);
+
+-- Relación muchos a muchos: Productos - Tipos
+CREATE TABLE producto_tipos (
+    idproducto INTEGER REFERENCES productos(idproducto) ON DELETE CASCADE,
+    idtipo INTEGER REFERENCES tipos(idtipo) ON DELETE CASCADE,
+    PRIMARY KEY (idproducto, idtipo)
+);
+
+-- Tablas de ventas y transacciones
+CREATE TABLE ventas (
+    idventa SERIAL PRIMARY KEY,
+    fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    idusuario INTEGER REFERENCES usuarios(idusuario) NOT NULL,
+    descripcion TEXT,
+    sub_total DECIMAL(10,2) NOT NULL CHECK (sub_total >= 0),
+    descuento DECIMAL(10,2) DEFAULT 0 CHECK (descuento >= 0),
+    total DECIMAL(10,2) NOT NULL CHECK (total >= 0),
+    metodo_pago VARCHAR(20) CHECK (metodo_pago IN ('Efectivo', 'QR')),
+    descripcion_descuento TEXT
+);
+
+CREATE TABLE detalle_ventas (
+    iddetalle_venta SERIAL PRIMARY KEY,
+    idventa INTEGER REFERENCES ventas(idventa) ON DELETE CASCADE,
+    idproducto INTEGER REFERENCES productos(idproducto) NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    precio_unitario DECIMAL(10,2) NOT NULL CHECK (precio_unitario >= 0),
+    subtotal_linea DECIMAL(10,2) NOT NULL CHECK (subtotal_linea >= 0),
+    descuento_monto DECIMAL(10,2) DEFAULT 0 CHECK (descuento_monto >= 0),
+    iddoctor INTEGER REFERENCES doctores(iddoctor) NULL,
+    idlote INTEGER REFERENCES lotes(idlote)
+);
+
+
+CREATE TABLE caja (
+    idcaja SERIAL PRIMARY KEY,
+    nombre_caja VARCHAR(100) DEFAULT 'Caja Principal',
+    total DECIMAL(10,2) DEFAULT 0,
+    estado VARCHAR(20) DEFAULT 'cerrada' CHECK (estado IN ('abierta', 'cerrada'))
+);
+
+
+CREATE TABLE transaccion_caja (
+    idtransaccion_caja SERIAL PRIMARY KEY,
+    idcaja INTEGER NOT NULL REFERENCES caja(idcaja),
+    fecha TIMESTAMP DEFAULT TIMEZONE('America/La_Paz', NOW()),
+    idusuario INTEGER NOT NULL REFERENCES usuarios(idusuario),
+    monto_nuevo DECIMAL(10,2) NOT NULL,
+    monto_anterior DECIMAL(10,2) NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    tipo_movimiento VARCHAR(20) NOT NULL CHECK (tipo_movimiento IN ('apertura', 'cierre', 'ingreso', 'egreso')),
+    descripcion TEXT,
+    idventa INTEGER REFERENCES ventas(idventa)
+);
+
+-- Tablas de cotizaciones
+CREATE TABLE cotizaciones (
+    idcotizacion SERIAL PRIMARY KEY,
+    vigencia TEXT, -- Días de vigencia en texto
+    cliente_nombre VARCHAR(200) NOT NULL,
+    cliente_telefono VARCHAR(20),
+    cliente_direccion TEXT,
+    tipo_pago VARCHAR(30) CHECK (tipo_pago IN ('Pago por Adelantado', 'Mitad de Pago')),
+    sub_total DECIMAL(10,2) NOT NULL CHECK (sub_total >= 0),
+    descuento DECIMAL(10,2) DEFAULT 0 CHECK (descuento >= 0),
+    total DECIMAL(10,2) NOT NULL CHECK (total >= 0),
+    abono DECIMAL(10,2) DEFAULT 0 CHECK (abono >= 0),
+    saldo DECIMAL(10,2) DEFAULT 0 CHECK (saldo >= 0),
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1)), -- 0 activo, 1 eliminado
+    idusuario INTEGER REFERENCES usuarios(idusuario) NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT TIMEZONE('America/La_Paz', NOW())
+);
+
+CREATE TABLE detalle_cotizaciones (
+    iddetalle_cotizacion SERIAL PRIMARY KEY,
+    idcotizacion INTEGER REFERENCES cotizaciones(idcotizacion) ON DELETE CASCADE,
+    idproducto INTEGER REFERENCES productos(idproducto) NOT NULL,
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+    precio_unitario DECIMAL(10,2) NOT NULL CHECK (precio_unitario >= 0),
+    subtotal_linea DECIMAL(10,2) NOT NULL CHECK (subtotal_linea >= 0)
+);
+
+CREATE TABLE productos_pendientes_cotizacion (
+    idproducto_pendiente SERIAL PRIMARY KEY,
+    idcotizacion INTEGER REFERENCES cotizaciones(idcotizacion) ON DELETE CASCADE,
+    idproducto INTEGER REFERENCES productos(idproducto) NOT NULL,
+    cantidad_pendiente INTEGER NOT NULL CHECK (cantidad_pendiente >= 0)
+);
+
+-- Tablas de objetivos y carruseles
+CREATE TABLE objetivos (
+    idobjetivo SERIAL PRIMARY KEY,
+    mes INTEGER NOT NULL CHECK (mes >= 1 AND mes <= 12),
+    año INTEGER NOT NULL CHECK (año >= 2020),
+    monto DECIMAL(10,2) NOT NULL CHECK (monto > 0),
+    UNIQUE(mes, año)
+);
+
+CREATE TABLE carruseles (
+    idcarrusel SERIAL PRIMARY KEY,
+    nombre VARCHAR(200) NOT NULL,
+    estado SMALLINT DEFAULT 0 CHECK (estado IN (0, 1, 2)) -- 0 activo, 1 inactivo, 2 eliminado
+);
+
+CREATE TABLE carrusel_productos (
+    idcarrusel_producto SERIAL PRIMARY KEY,
+    idcarrusel INTEGER REFERENCES carruseles(idcarrusel) ON DELETE CASCADE,
+    idproducto INTEGER REFERENCES productos(idproducto) ON DELETE CASCADE,
+    UNIQUE(idcarrusel, idproducto)
+);
+
+-- Tabla de notas
+CREATE TABLE notas (
+    idnota SERIAL PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    contenido TEXT NOT NULL,
+    fecha DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE productos_similares (
+    idproducto INTEGER REFERENCES productos(idproducto) ON DELETE CASCADE,
+    idproducto_similar INTEGER REFERENCES productos(idproducto) ON DELETE CASCADE,
+    PRIMARY KEY (idproducto, idproducto_similar),
+    CHECK (idproducto != idproducto_similar)
+);
+
+-- Índices para mejorar rendimiento
+CREATE INDEX idx_transaccion_caja_caja ON transaccion_caja(idcaja);
+CREATE INDEX idx_transaccion_caja_fecha ON transaccion_caja(fecha);
+CREATE INDEX idx_transaccion_caja_usuario ON transaccion_caja(idusuario);
+CREATE INDEX idx_ventas_fecha ON ventas(fecha_hora);
+CREATE INDEX idx_ventas_usuario ON ventas(idusuario);
+CREATE INDEX idx_detalle_ventas_venta ON detalle_ventas(idventa);
+CREATE INDEX idx_detalle_cotizaciones_cotizacion ON detalle_cotizaciones(idcotizacion);
+CREATE INDEX idx_productos_codigo_barras ON productos(codigo_barras);
+CREATE INDEX idx_productos_similares_producto ON productos_similares(idproducto);
+CREATE INDEX idx_productos_similares_similar ON productos_similares(idproducto_similar);
+CREATE INDEX idx_lotes_producto ON lotes(idproducto);
+CREATE INDEX idx_detalle_ventas_doctor ON detalle_ventas(iddoctor);
+CREATE INDEX idx_detalle_ventas_idlote ON detalle_ventas(idlote);
