@@ -1,9 +1,12 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -31,40 +34,119 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+
+      <HashRouter>
         <Routes>
           {/* Redirigir raíz directamente a login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          
+          <Route
+            path="/"
+            element={<Navigate to="/login" replace />}
+          />
+
           {/* Ruta de login */}
-          <Route path="/login" element={<Login />} />
-          
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+
           {/* Rutas protegidas del dashboard */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Navigate to="/dashboard/vender" replace />} />
-            <Route path="vender" element={<VenderView />} />
-            <Route path="notas" element={<NotasView />} />
-            <Route path="productos" element={<ProductosView />} />
-            <Route path="inventario" element={<InventarioView />} />
-            <Route path="ventas" element={<VentasView />} />
-            <Route path="cotizacion" element={<CotizacionView />} />
-            <Route path="pagos-pendientes" element={<PagosPendientesView />} />
-            <Route path="caja" element={<CajaView />} />
-            <Route path="registra-movimiento" element={<RegistraMovimientoView />} />
-            <Route path="reportes" element={<ReportesView />} />
-            <Route path="ecommerce" element={<EcommerceView />} />
-            <Route path="configuracion" element={<ConfiguracionView />} />
-            <Route path="alertas" element={<AlertasView />} />
-            <Route path="usuarios" element={<GestionUsuariosView />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
+            {/* Ruta por defecto del dashboard */}
+            <Route
+              index
+              element={
+                <Navigate
+                  to="/dashboard/vender"
+                  replace
+                />
+              }
+            />
+
+            <Route
+              path="vender"
+              element={<VenderView />}
+            />
+
+            <Route
+              path="notas"
+              element={<NotasView />}
+            />
+
+            <Route
+              path="productos"
+              element={<ProductosView />}
+            />
+
+            <Route
+              path="inventario"
+              element={<InventarioView />}
+            />
+
+            <Route
+              path="ventas"
+              element={<VentasView />}
+            />
+
+            <Route
+              path="cotizacion"
+              element={<CotizacionView />}
+            />
+
+            <Route
+              path="pagos-pendientes"
+              element={<PagosPendientesView />}
+            />
+
+            <Route
+              path="caja"
+              element={<CajaView />}
+            />
+
+            <Route
+              path="registra-movimiento"
+              element={<RegistraMovimientoView />}
+            />
+
+            <Route
+              path="reportes"
+              element={<ReportesView />}
+            />
+
+            <Route
+              path="ecommerce"
+              element={<EcommerceView />}
+            />
+
+            <Route
+              path="configuracion"
+              element={<ConfiguracionView />}
+            />
+
+            <Route
+              path="alertas"
+              element={<AlertasView />}
+            />
+
+            <Route
+              path="usuarios"
+              element={<GestionUsuariosView />}
+            />
           </Route>
-          
-          <Route path="*" element={<NotFound />} />
+
+          {/* Página 404 */}
+          <Route
+            path="*"
+            element={<NotFound />}
+          />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
