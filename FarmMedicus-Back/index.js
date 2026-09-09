@@ -1,51 +1,4 @@
-
-const path = require("path");
-const os = require("os");
-const fs = require("fs");
-
-// =====================================================
-// CARGAR VARIABLES DE ENTORNO
-// =====================================================
-
-// En desarrollo:
-// FarmMedicus-Back/.env
-
-// En producción:
-// %APPDATA%/FarmMedicus/.env
-
-const externalEnvPath = path.join(
-  os.homedir(),
-  "AppData",
-  "Roaming",
-  "FarmMedicus",
-  ".env"
-);
-
-const localEnvPath = path.join(__dirname, ".env");
-
-// Primero intenta usar el .env externo.
-// Si no existe, intenta usar el .env local.
-if (fs.existsSync(externalEnvPath)) {
-  require("dotenv").config({
-    path: externalEnvPath,
-  });
-
-  console.log("[ENV] Usando configuración externa:");
-  console.log(externalEnvPath);
-} else if (fs.existsSync(localEnvPath)) {
-  require("dotenv").config({
-    path: localEnvPath,
-  });
-
-  console.log("[ENV] Usando configuración local:");
-  console.log(localEnvPath);
-} else {
-  console.error("[ENV] No se encontró ningún archivo .env");
-}
-
-// =====================================================
-// DEPENDENCIAS
-// =====================================================
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -137,11 +90,7 @@ app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.urlencoded({ extended: true }));
 
 // =====================================================
 // RUTAS API
@@ -175,7 +124,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     success: false,
     message: "Error interno del servidor",
-
     error:
       process.env.NODE_ENV === "development"
         ? err.message
@@ -189,8 +137,6 @@ app.use((err, req, res, next) => {
 
 const startServer = async () => {
   try {
-    console.log("[BACKEND] Iniciando conexión a PostgreSQL...");
-
     await connectDB();
 
     const PORT = process.env.PORT || 5000;
