@@ -1,7 +1,7 @@
 {
   "name": "vite-react-shadcn-ts",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Aplicación de escritorio",
   "author": "Electron App",
   "type": "module",
@@ -98,23 +98,19 @@
   "build": {
     "appId": "com.farmmedicus.app",
     "productName": "FarmMedicus",
-
     "publish": {
       "provider": "github",
       "owner": "CapRodri24",
       "repo": "Farmedicus_Escritorio"
     },
-
     "directories": {
       "output": "release"
     },
-
     "files": [
       "dist/**/*",
       "electron/**/*",
       "package.json"
     ],
-
     "extraResources": [
       {
         "from": "FarmMedicus-Back",
@@ -133,11 +129,9 @@
         ]
       }
     ],
-
     "win": {
       "target": "nsis"
     },
-
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
