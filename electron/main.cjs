@@ -1,9 +1,10 @@
-
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, dialog } = require('electron')
 const path = require('path')
 const { spawn } = require('child_process')
+const { autoUpdater } = require('electron-updater')
 
 let backendProcess = null
+
 
 // ======================================================
 // INICIAR BACKEND
@@ -93,6 +94,87 @@ function waitForBackend() {
 
 
 // ======================================================
+// ACTUALIZACIONES
+// ======================================================
+function setupAutoUpdater() {
+
+  // Nunca buscar actualizaciones durante desarrollo
+  if (!app.isPackaged) {
+    console.log('[UPDATE] Modo desarrollo: actualizaciones desactivadas')
+    return
+  }
+
+  console.log('[UPDATE] Buscando actualizaciones...')
+
+  // ----------------------------------------------------
+  // Hay una actualización disponible
+  // ----------------------------------------------------
+  autoUpdater.on('update-available', (info) => {
+    console.log(
+      `[UPDATE] Nueva versión disponible: ${info.version}`
+    )
+  })
+
+
+  // ----------------------------------------------------
+  // No hay actualización
+  // ----------------------------------------------------
+  autoUpdater.on('update-not-available', () => {
+    console.log('[UPDATE] FarmMedicus ya está actualizado')
+  })
+
+
+  // ----------------------------------------------------
+  // Error
+  // ----------------------------------------------------
+  autoUpdater.on('error', (error) => {
+    console.error('[UPDATE] Error al actualizar:', error)
+  })
+
+
+  // ----------------------------------------------------
+  // Actualización descargada
+  // ----------------------------------------------------
+  autoUpdater.on('update-downloaded', async (info) => {
+
+    console.log(
+      `[UPDATE] Actualización descargada: ${info.version}`
+    )
+
+    const result = await dialog.showMessageBox({
+      type: 'info',
+      title: 'Actualización disponible',
+      message: `FarmMedicus ${info.version} está listo para instalar.`,
+      detail:
+        'La aplicación debe reiniciarse para completar la actualización.',
+      buttons: [
+        'Reiniciar ahora',
+        'Más tarde'
+      ],
+      defaultId: 0,
+      cancelId: 1
+    })
+
+    if (result.response === 0) {
+
+      console.log('[UPDATE] Reiniciando para instalar...')
+
+      autoUpdater.quitAndInstall(
+        false,
+        true
+      )
+    }
+  })
+
+
+  // ----------------------------------------------------
+  // Iniciar búsqueda
+  // ----------------------------------------------------
+  autoUpdater.checkForUpdates()
+}
+
+
+// ======================================================
 // CREAR VENTANA
 // ======================================================
 function createWindow() {
@@ -111,13 +193,18 @@ function createWindow() {
   win.maximize()
 
   if (app.isPackaged) {
+
     // Aplicación empaquetada
     win.loadFile(
       path.join(__dirname, '../dist/index.html')
     )
+
   } else {
+
     // Desarrollo
-    win.loadURL('http://127.0.0.1:8080')
+    win.loadURL(
+      'http://127.0.0.1:8080'
+    )
   }
 }
 
@@ -127,23 +214,42 @@ function createWindow() {
 // ======================================================
 app.whenReady().then(async () => {
 
-  // Solo iniciar backend automáticamente
-  // cuando estamos en la versión empaquetada
+  // ----------------------------------------------------
+  // PRODUCCIÓN
+  // ----------------------------------------------------
   if (app.isPackaged) {
+
+    // Iniciar backend
     startBackend()
 
     // Esperar hasta que Express esté disponible
     await waitForBackend()
   }
 
+
+  // ----------------------------------------------------
   // Crear ventana
+  // ----------------------------------------------------
   createWindow()
 
+
+  // ----------------------------------------------------
+  // Buscar actualizaciones
+  // ----------------------------------------------------
+  if (app.isPackaged) {
+    setupAutoUpdater()
+  }
+
+
+  // ----------------------------------------------------
   // macOS
+  // ----------------------------------------------------
   app.on('activate', () => {
+
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
     }
+
   })
 })
 
@@ -154,11 +260,14 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
 
   if (backendProcess) {
+
     console.log('[BACKEND] Cerrando backend...')
 
     backendProcess.kill()
+
     backendProcess = null
   }
+
 
   if (process.platform !== 'darwin') {
     app.quit()
@@ -168,14 +277,16 @@ app.on('window-all-closed', () => {
 
 // ======================================================
 // SEGURIDAD EXTRA:
-// Cerrar backend cuando Electron termina
+// CERRAR BACKEND CUANDO ELECTRON TERMINA
 // ======================================================
 app.on('before-quit', () => {
 
   if (backendProcess) {
+
     console.log('[BACKEND] Cerrando backend...')
 
     backendProcess.kill()
+
     backendProcess = null
   }
 })
