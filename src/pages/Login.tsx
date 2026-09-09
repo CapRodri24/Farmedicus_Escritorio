@@ -116,7 +116,7 @@ const Login = () => {
           </div>
           <CardTitle className="text-2xl font-bold text-primary">Iniciar Sesión</CardTitle>
           <CardDescription>
-            Ingresa tus credenciales perrito para acceder al sistema
+            Ingresa tus credenciales perritos para acceder al sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
