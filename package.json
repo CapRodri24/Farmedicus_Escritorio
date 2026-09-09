@@ -1,7 +1,7 @@
 {
   "name": "vite-react-shadcn-ts",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aplicación de escritorio",
   "author": "Electron App",
   "type": "module",
